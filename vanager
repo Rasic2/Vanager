@@ -6,13 +6,12 @@ WHITE="\033[1;37m"
 BOLD="\033[1m"
 RESET="\033[0m"
 
-WorkDir=`pwd`
-VanDir=.van
-
 init(){
-  if [ ! -d $VanDir ];then
+  local VanRoot=.van
+
+  if [ ! -d $VanRoot ];then
     echo -e "$BOLD $WHITE Init the Vanager~ $RESET"
-    mkdir $VanDir
+    mkdir $VanRoot
 
 	# build-up INDEX
     for directory in `find $WorkDir -type d`
@@ -20,24 +19,24 @@ init(){
       base_directory=`basename $directory`
       if [ x"$base_directory" != x".van" ];then
         md5=`echo "$directory" | md5sum | awk '{print $1}'`
-        echo -e "$md5 \t $directory" >> $VanDir/INDEX
+        echo -e "$md5 \t $directory" >> $VanRoot/INDEX
       fi
     done
 	
 	# build-up TAGS
-    for file in `awk '{print $2}' $VanDir/INDEX`
+    for file in `awk '{print $2}' $VanRoot/INDEX`
 	do 
 	  while [[ "$file" != "$WorkDir" ]]
 	  do 
 		tag=`basename $file`
 		echo $tag
 		file=${file%/*}
-      done >> $VanDir/temp_tags
+      done >> $VanRoot/temp_tags
     done
-	sort $VanDir/temp_tags | uniq > $VanDir/TAGS
+	sort $VanRoot/temp_tags | uniq > $VanRoot/TAGS
 
 	# end initialization
-	rm -rf $VanDir/temp_tags
+	rm -rf $VanRoot/temp_tags
 	echo -e "$BOLD $WHITE The Vanager Initialization success~ $RESET"
   else
     echo -e "$RED The Vanager have been initialized before, stop it! $RESET"
@@ -68,12 +67,34 @@ vcd(){
   cd $target
 }
 
+# locate VanDir
+WorkDir=`pwd`
+VanDir=$WorkDir
+while [[ $VanDir =~ "/" ]]
+do
+  if [ -d $VanDir/.van ];then
+    VanDir=$VanDir/.van
+    break
+  else
+    VanDir=${VanDir%/*}
+  fi
+done
+
+# Parse Arguments
 if [ x"$1" == x"init" ];then
   init
-elif [ x"$1" == x"tags" ];then
-  tags
-elif [ x"$1" == x"search" ];then
-  search $2
-elif [ x"$1" == x"cd" ];then
-  vcd $2
+else
+  if [ x"$VanDir" == x"" ];then
+    echo -e "$RED No Vanager Project exist, stop! $RESET"
+  else
+    if [ x"$1" == x"tags" ];then
+  	  tags
+    elif [ x"$1" == x"search" ];then
+      search $2
+    elif [ x"$1" == x"cd" ];then
+      vcd $2
+    elif [ x"$1" == x"" ];then
+      cd $VanDir && cd ..
+    fi
+  fi
 fi
