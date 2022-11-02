@@ -58,8 +58,34 @@ tags(){
 } 
 
 search(){
-  local tag=$1
-  awk '{if($2 ~ "'$tag'"){print substr($1, 1, 6), "\t", $2}}' $VanDir/INDEX | grep $tag --color
+  cp $VanDir/INDEX temp_index
+  shift
+  
+  while [ $# -ne 0 ]
+  do
+    local tag=$1
+    awk '{if($2 ~ "'$tag'"){print substr($1, 1, 6), "\t", $2 > "temp_index"}}' temp_index
+
+    grep_valid=`grep $tag temp_index | wc -l`  # second tag not exist in first tag search results
+    if [ $grep_valid -eq 0 ];then
+    	rm -rf temp_index && touch temp_index   
+    fi
+
+	rm -rf temp_cindex
+	while read line
+	do
+		tag_id=`echo $line | awk '{print $1}'`
+		orig_line=`echo $line | awk '{print $2}'`
+		prefix=`echo ${orig_line%$tag*}`
+		suffix=`echo ${orig_line#*$tag}`
+		echo -e "${tag_id} \t ${prefix}${RED}${tag}${RESET}${suffix}" >> temp_cindex
+	done < temp_index	
+	mv temp_cindex temp_index 2>/dev/null
+    shift
+  done
+
+  cat temp_index
+  rm -rf temp_index temp_cindex
 }
 
 vcd(){
@@ -90,7 +116,7 @@ else
     if [ x"$1" == x"tags" ];then
   	  tags
     elif [ x"$1" == x"search" ];then
-      search $2
+      search $@
     elif [ x"$1" == x"cd" ];then
       vcd $2
     elif [ x"$1" == x"" ];then
