@@ -1,17 +1,11 @@
 #!/usr/bin/bash
 
-RED="\033[1;31m"
-GREEN="\033[1;32m"
-WHITE="\033[1;37m"
-BOLD="\033[1m"
-RESET="\033[0m"
-
 init(){
-  local VanRoot=.van
+  local VanConfig=.van
 
-  if [ ! -d $VanRoot ];then
+  if [ ! -d $VanConfig ];then
     echo -e "$BOLD $WHITE Init the Vanager~ $RESET"
-    mkdir $VanRoot
+    mkdir $VanConfig
 
 	# build-up INDEX
     for directory in `find $WorkDir -type d`
@@ -19,24 +13,24 @@ init(){
       base_directory=`basename $directory`
       if [ x"$base_directory" != x".van" ];then
         md5=`echo "$directory" | md5sum | awk '{print $1}'`
-        echo -e "$md5 \t $directory" >> $VanRoot/INDEX
+        echo -e "$md5 \t $directory" >> $VanConfig/INDEX
       fi
     done
 	
 	# build-up TAGS
-    for file in `awk '{print $2}' $VanRoot/INDEX`
+    for file in `awk '{print $2}' $VanConfig/INDEX`
 	do 
 	  while [[ "$file" != "$WorkDir" ]]
 	  do 
 		tag=`basename $file`
 		echo $tag
 		file=${file%/*}
-      done >> $VanRoot/temp_tags
+      done >> $VanConfig/temp_tags
     done
-	sort $VanRoot/temp_tags | uniq > $VanRoot/TAGS
+	sort $VanConfig/temp_tags | uniq > $VanConfig/TAGS
 
 	# end initialization
-	rm -rf $VanRoot/temp_tags
+	rm -rf $VanConfig/temp_tags
 	echo -e "$BOLD $WHITE The Vanager Initialization success~ $RESET"
   else
     echo -e "$RED The Vanager have been initialized before, stop it! $RESET"
@@ -94,6 +88,7 @@ record_cmd(){
   if [[ $VanDir =~ ".van" ]];then
   	if [[ $1 == "mkdir" ]];then
 	  echo "[$DATE] $@" >> $VanDir/CMDLOG
+      mkdir_parse $@
 	elif [[ $1 == "rm" ]];then
 	  echo "[$DATE] $@" >> $VanDir/CMDLOG
     elif [[ $1 == "mv" ]];then
@@ -121,6 +116,17 @@ do
     VanDir=${VanDir%/*}
   fi
 done
+
+export VanRoot=$HOME/package/vanager
+export VanDir=$VanDir
+
+source $VanRoot/cmd
+
+RED="\033[1;31m"
+GREEN="\033[1;32m"
+WHITE="\033[1;37m"
+BOLD="\033[1m"
+RESET="\033[0m"
 
 # Parse Arguments
 if [ x"$1" == x"init" ];then

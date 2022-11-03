@@ -1,0 +1,15 @@
+#!/usr/bin/bash
+
+get_VanDir(){
+	local inner_dir=$1
+	while [[ $inner_dir =~ "/" ]]
+	do
+  		if [ -d $inner_dir/.van ];then
+    		inner_dir=$inner_dir/.van
+    		break
+  		else
+    		inner_dir=${inner_dir%/*}
+  		fi
+	done
+	echo $inner_dir
+}
