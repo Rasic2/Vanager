@@ -104,29 +104,19 @@ vcd(){
   cd $target
 }
 
-# locate VanDir
+# ---- Main -----
 WorkDir=`pwd`
-VanDir=$WorkDir
-while [[ $VanDir =~ "/" ]]
-do
-  if [ -d $VanDir/.van ];then
-    VanDir=$VanDir/.van
-    break
-  else
-    VanDir=${VanDir%/*}
-  fi
-done
-
-export VanRoot=$HOME/package/vanager
-export VanDir=$VanDir
-
-source $VanRoot/cmd
 
 RED="\033[1;31m"
 GREEN="\033[1;32m"
 WHITE="\033[1;37m"
 BOLD="\033[1m"
 RESET="\033[0m"
+
+export VanRoot=$HOME/package/vanager
+source $VanRoot/utils
+export VanDir=`get_VanDir $WorkDir`
+source $VanRoot/cmd
 
 # Parse Arguments
 if [ x"$1" == x"init" ];then
@@ -148,3 +138,4 @@ else
     fi
   fi
 fi
+# -----End Main -------
