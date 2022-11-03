@@ -88,6 +88,22 @@ search(){
   rm -rf temp_index temp_cindex
 }
 
+record_cmd(){
+  DATE=`date "+%Y-%m-%d %H:%M:%S"`
+  shift
+  if [[ $VanDir =~ ".van" ]];then
+  	if [[ $1 == "mkdir" ]];then
+	  echo "[$DATE] $@" >> $VanDir/CMDLOG
+	elif [[ $1 == "rm" ]];then
+	  echo "[$DATE] $@" >> $VanDir/CMDLOG
+    elif [[ $1 == "mv" ]];then
+	  echo "[$DATE] $@" >> $VanDir/CMDLOG
+    elif [[ $1 == "cp" ]];then
+	  echo "[$DATE] $@" >> $VanDir/CMDLOG
+	fi
+  fi
+}
+
 vcd(){
   target=`grep "^$1" $VanDir/INDEX | awk '{print $2}'`
   cd $target
@@ -109,6 +125,8 @@ done
 # Parse Arguments
 if [ x"$1" == x"init" ];then
   init
+elif [ x"$1" == x"cmd" ];then
+  record_cmd $@
 else
   if [ x"$VanDir" == x"" ];then
     echo -e "$RED No Vanager Project exist, stop! $RESET"
