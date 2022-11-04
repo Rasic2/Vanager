@@ -101,7 +101,7 @@ record_cmd(){
 
 vcd(){
   target=`grep "^$1" $VanDir/INDEX | awk '{print $2}'`
-  cd $target
+  cd $target || return
 }
 
 # ---- Main -----
@@ -115,7 +115,7 @@ RESET="\033[0m"
 
 export VanRoot=$HOME/package/vanager
 source $VanRoot/utils
-export VanDir=`get_VanDir $WorkDir`
+export VanDir=$(get_VanDir $WorkDir)
 source $VanRoot/cmd
 
 # Parse Arguments
@@ -134,7 +134,7 @@ else
     elif [ x"$1" == x"cd" ];then
       vcd $2
     elif [ x"$1" == x"" ];then
-      cd $VanDir && cd ..
+      cd "$VanDir" && cd ..
     fi
   fi
 fi
