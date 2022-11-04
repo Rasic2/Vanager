@@ -1,80 +1,74 @@
 #!/usr/bin/bash
 
-init(){
+init() {
   local VanConfig=.van
 
-  if [ ! -d $VanConfig ];then
+  if [ ! -d $VanConfig ]; then
     echo -e "$BOLD $WHITE Init the Vanager~ $RESET"
     mkdir $VanConfig
 
-	# build-up INDEX
-    for directory in `find $WorkDir -type d`
-    do
-      base_directory=`basename $directory`
-      if [ x"$base_directory" != x".van" ];then
-        md5=`echo "$directory" | md5sum | awk '{print $1}'`
-        echo -e "$md5 \t $directory" >> $VanConfig/INDEX
+    # build-up INDEX
+    for directory in $(find $WorkDir -type d); do
+      base_directory=$(basename $directory)
+      if [ x"$base_directory" != x".van" ]; then
+        md5=$(echo "$directory" | md5sum | awk '{print $1}')
+        echo -e "$md5 \t $directory" >>$VanConfig/INDEX
       fi
     done
-	
-	# build-up TAGS
-    for file in `awk '{print $2}' $VanConfig/INDEX`
-	do 
-	  while [[ "$file" != "$WorkDir" ]]
-	  do 
-		tag=`basename $file`
-		echo $tag
-		file=${file%/*}
-      done >> $VanConfig/temp_tags
-    done
-	sort $VanConfig/temp_tags | uniq > $VanConfig/TAGS
 
-	# end initialization
-	rm -rf $VanConfig/temp_tags
-	echo -e "$BOLD $WHITE The Vanager Initialization success~ $RESET"
+    # build-up TAGS
+    for file in $(awk '{print $2}' $VanConfig/INDEX); do
+      while [[ "$file" != "$WorkDir" ]]; do
+        tag=$(basename $file)
+        echo $tag
+        file=${file%/*}
+      done >>$VanConfig/temp_tags
+    done
+    sort $VanConfig/temp_tags | uniq >$VanConfig/TAGS
+
+    # end initialization
+    rm -rf $VanConfig/temp_tags
+    echo -e "$BOLD $WHITE The Vanager Initialization success~ $RESET"
   else
     echo -e "$RED The Vanager have been initialized before, stop it! $RESET"
   fi
 }
 
-tags(){
+tags() {
   local i=0
-  for tag in `cat $VanDir/TAGS`
-  do 
+  for tag in $(cat $VanDir/TAGS); do
     ((i++))
-    remainder=`echo $i%6 | bc`
-    if [ $remainder -eq 0 ];then 
+    remainder=$(echo $i%6 | bc)
+    if [ $remainder -eq 0 ]; then
       echo
-    else 
+    else
       printf "%-30s" $tag
     fi
   done | more
-} 
+}
 
-search(){
+search() {
   cp $VanDir/INDEX temp_index
   shift
-  
-  while [ $# -ne 0 ]
-  do
+
+  while [ $# -ne 0 ]; do
     local tag=$1
     awk '{if($2 ~ "'$tag'"){print substr($1, 1, 6), "\t", $2 > "temp_index"}}' temp_index
 
-    grep_valid=`grep $tag temp_index | wc -l`  # second tag not exist in first tag search results
-    if [ $grep_valid -eq 0 ];then
-    	rm -rf temp_index && touch temp_index   
+    grep_valid=$(grep $tag temp_index | wc -l) # second tag not exist in first tag search results
+    if [ $grep_valid -eq 0 ]; then
+      rm -rf temp_index && touch temp_index
     fi
 
-	rm -rf temp_cindex
-	while read line
-	do
-		tag_id=`echo $line | awk '{print $1}'`
-		orig_line=`echo $line | awk '{print $2}'`
-		prefix=`echo ${orig_line%$tag*}`
-		suffix=`echo ${orig_line#*$tag}`
-		echo -e "${tag_id} \t ${prefix}${RED}${tag}${RESET}${suffix}" >> temp_cindex
-	done < temp_index	
-	mv temp_cindex temp_index 2>/dev/null
+    rm -rf temp_cindex
+    while read line; do
+      tag_id=$(echo $line | awk '{print $1}')
+      orig_line=$(echo $line | awk '{print $2}')
+      prefix=$(echo ${orig_line%$tag*})
+      suffix=$(echo ${orig_line#*$tag})
+      echo -e "${tag_id} \t ${prefix}${RED}${tag}${RESET}${suffix}" >>temp_cindex
+    done <temp_index
+    mv temp_cindex temp_index 2>/dev/null
     shift
   done
 
@@ -82,30 +76,31 @@ search(){
   rm -rf temp_index temp_cindex
 }
 
-record_cmd(){
-  DATE=`date "+%Y-%m-%d %H:%M:%S"`
+record_cmd() {
+  DATE=$(date "+%Y-%m-%d %H:%M:%S")
   shift
-  if [[ $VanDir =~ ".van" ]];then
-  	if [[ $1 == "mkdir" ]];then
-	  echo "[$DATE] $@" >> $VanDir/CMDLOG
+  if [[ $VanDir =~ ".van" ]]; then
+    if [[ $1 == "mkdir" ]]; then
+      echo "[$DATE] $@" >>$VanDir/CMDLOG
       mkdir_parse $@
-	elif [[ $1 == "rm" ]];then
-	  echo "[$DATE] $@" >> $VanDir/CMDLOG
-    elif [[ $1 == "mv" ]];then
-	  echo "[$DATE] $@" >> $VanDir/CMDLOG
-    elif [[ $1 == "cp" ]];then
-	  echo "[$DATE] $@" >> $VanDir/CMDLOG
-	fi
+    elif [[ $1 == "rm" ]]; then
+      echo "[$DATE] $@" >>$VanDir/CMDLOG
+      rm_parse $@
+    elif [[ $1 == "mv" ]]; then
+      echo "[$DATE] $@" >>$VanDir/CMDLOG
+    elif [[ $1 == "cp" ]]; then
+      echo "[$DATE] $@" >>$VanDir/CMDLOG
+    fi
   fi
 }
 
-vcd(){
-  target=`grep "^$1" $VanDir/INDEX | awk '{print $2}'`
+vcd() {
+  target=$(grep "^$1" $VanDir/INDEX | awk '{print $2}')
   cd $target || return
 }
 
 # ---- Main -----
-WorkDir=`pwd`
+WorkDir=$(pwd)
 
 RED="\033[1;31m"
 GREEN="\033[1;32m"
@@ -119,21 +114,21 @@ export VanDir=$(get_VanDir $WorkDir)
 source $VanRoot/cmd
 
 # Parse Arguments
-if [ x"$1" == x"init" ];then
+if [ x"$1" == x"init" ]; then
   init
-elif [ x"$1" == x"cmd" ];then
+elif [ x"$1" == x"cmd" ]; then
   record_cmd $@
 else
-  if [ x"$VanDir" == x"" ];then
+  if [ x"$VanDir" == x"" ]; then
     echo -e "$RED No Vanager Project exist, stop! $RESET"
   else
-    if [ x"$1" == x"tags" ];then
-  	  tags
-    elif [ x"$1" == x"search" ];then
+    if [ x"$1" == x"tags" ]; then
+      tags
+    elif [ x"$1" == x"search" ]; then
       search $@
-    elif [ x"$1" == x"cd" ];then
+    elif [ x"$1" == x"cd" ]; then
       vcd $2
-    elif [ x"$1" == x"" ];then
+    elif [ x"$1" == x"" ]; then
       cd "$VanDir" && cd ..
     fi
   fi
