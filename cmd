@@ -70,25 +70,11 @@ mv_parse() {
 		fi
 	fi
 
-	# regenerate tags (backward)
-	ProDir=$(dirname $VanDir)
-	{
-		rm -rf $VanDir/temp_tags
-		for file in $(awk '{print $2}' $VanDir/INDEX); do
-			while [[ "$file" != "$ProDir" ]]; do
-				tag=$(basename $file)
-				echo $tag
-				file=${file%/*}
-			done >>$VanDir/temp_tags
-		done
-		#sort $VanDir/temp_tags | uniq #>$VanDir/TAGS
-		rm -rf $VanDir/temp_tags
-	} &
+	regenerate_tag # regerenate tags
 }
 
 #rm
 rm_parse() {
-	ProDir=$(dirname $VanDir)
 
 	shift
 
@@ -104,7 +90,12 @@ rm_parse() {
 		shift
 	done
 
-	# regenerate tags (backward)
+	regenerate_tag # regerenate tags
+
+}
+
+regenerate_tag() {
+	ProDir=$(dirname $VanDir)
 	{
 		rm -rf $VanDir/temp_tags
 		for file in $(awk '{print $2}' $VanDir/INDEX); do
