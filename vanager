@@ -88,6 +88,7 @@ record_cmd() {
       rm_parse $@
     elif [[ $1 == "mv" ]]; then
       echo "[$DATE] $@" >>$VanDir/CMDLOG
+      mv_parse $@
     elif [[ $1 == "cp" ]]; then
       echo "[$DATE] $@" >>$VanDir/CMDLOG
     fi
