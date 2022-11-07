@@ -14,7 +14,10 @@ mkdir_parse() {
 			vandir=$(get_VanDir "$MkdirDir")
 			if [ "$VanDir" == "$vandir" -a $VERROR -eq 0 ]; then
 				md5=$(echo "$MkdirDir" | md5sum | awk '{print $1}')
+				md5_short=$(echo ${md5:0:6})
+				DATE=$(date "+%Y-%m-%d %H:%M:%S")
 				echo -e "$md5 \t $MkdirDir" >>$VanDir/INDEX
+				echo "[$DATE] add $md5_short in INDEX" >>$VanDir/CMDLOG
 				tag_dir=$MkdirDir
 				while [ $tag_dir != $ProDir ]; do
 					old_tags=($(cat $VanDir/TAGS | xargs -n 1))
@@ -62,10 +65,16 @@ mv_parse() {
 			:
 		elif [ $exist1 -eq 1 -a -d $path2 ]; then # mv dir1 dir2 (rename directory)
 			if [ "$VanDir" == "$vandir1" ]; then
+				md5_short=$(echo ${md51:0:6})
+				DATE=$(date "+%Y-%m-%d %H:%M:%S")
 				sed -i "/$md51/d" $VanDir/INDEX
+				echo "[$DATE] rm $md5_short in INDEX" >>$VanDir/CMDLOG
 			fi
 			if [ "$VanDir" == "$vandir2" ]; then
+				md5_short=$(echo ${md52:0:6})
+				DATE=$(date "+%Y-%m-%d %H:%M:%S")
 				echo -e "$md52 \t $path2" >>$VanDir/INDEX
+				echo "[$DATE] add $md5_short in INDEX" >>$VanDir/CMDLOG
 			fi
 		fi
 	fi
@@ -84,7 +93,10 @@ rm_parse() {
 			vandir=$(get_VanDir "$MkdirDir")
 			if [ "$VanDir" == "$vandir" -a $VERROR -eq 0 ]; then
 				md5=$(echo "$MkdirDir" | md5sum | awk '{print $1}')
+				md5_short=$(echo ${md5:0:6})
+				DATE=$(date "+%Y-%m-%d %H:%M:%S")
 				sed -i "/$md5/d" $VanDir/INDEX
+				echo "[$DATE] rm $md5_short in INDEX" >>$VanDir/CMDLOG
 			fi
 		fi
 		shift
