@@ -42,8 +42,26 @@ mkdir_parse() {
 }
 
 #cp
-#cp_parse(){
-#}
+cp_parse() {
+	if [ $VERROR -ne 0 ]; then
+		return 1
+	fi
+
+	shift
+	if [[ "$1" =~ -r.* && $# -eq 3 ]]; then
+		SrcDir=$(realpath "$2")
+		SrcVanDir=$(get_VanDir "$SrcDir")
+		DesDir=$(realpath "$3")
+		DesVanDir=$(get_VanDir "$DesDir")
+		if [ "$VanDir" == "$DesVanDir" ];then
+			md5=$(echo "$DesDir" | md5sum | awk '{print $1}')
+			md5_short=$(echo ${md5:0:6})
+			DATE=$(date "+%Y-%m-%d %H:%M:%S")
+			echo -e "$md5 \t $DesDir" >>$VanDir/INDEX
+			echo "[$DATE] add $md5_short in INDEX" >>$VanDir/CMDLOG
+		fi
+	fi
+}
 
 #mv
 mv_parse() {

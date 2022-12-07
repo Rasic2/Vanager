@@ -91,6 +91,7 @@ record_cmd() {
       mv_parse $@
     elif [[ $1 == "cp" ]]; then
       echo "[$DATE] $@" >>$VanDir/CMDLOG
+      cp_parse $@
     fi
   fi
 }
