@@ -1,0 +1,25 @@
+#!/usr/bin/bash
+source $VanRoot/color
+
+vexec() {
+    if [ x"$1" == x"ls" ]; then
+        while read line; do
+            tuple=($line)
+            id=${tuple[0]}
+            dir=$(echo ${tuple[1]} | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g")
+            type=""
+            ls_result=$(ls $dir)
+            OUTCAR_exist=$(find $dir -name "OUTCAR" -maxdepth 1 | wc -l)
+            if [ $OUTCAR_exist -gt 0 ]; then
+                type="${RED}VASPJob  $RESET"
+                pot=$(grep TITEL $dir/OUTCAR | awk -F= '{print $2}' | awk '{print $1":"$2}' | xargs | tr " " ",")
+                echo -e "${id:0:6}  $type $dir"
+                echo -e "        ${GREEN}$pot${RESET}\n"
+            else
+                type="${Blue}Directory${RESET}"
+                echo -e "${id:0:6}  $type  $dir"
+            fi
+
+        done <temp_index
+    fi
+}
