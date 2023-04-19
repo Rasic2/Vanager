@@ -10,19 +10,33 @@ vexec() {
             type=""
             ls_result=$(ls $dir)
             OUTCAR_exist=$(find $dir -name "OUTCAR" -maxdepth 1 | wc -l)
+            POSCAR_exist=$(find $dir -name "POSCAR" -maxdepth 1 | wc -l)
             if [ $OUTCAR_exist -gt 0 ]; then
+                outcar=$dir/OUTCAR
                 type="${RED}VASPJob  $RESET"
-                finish=$(grep reached $dir/OUTCAR | wc -l)
+                finish=$(grep reached $outcar | wc -l)
                 if [ $finish -gt 0 ]; then
                     finish="${Blue}Done$RESET"
                 else
                     finish="${RED}Fail$RESET"
                 fi
-                pot=$(grep TITEL $dir/OUTCAR | awk -F= '{print $2}' | awk '{print $1":"$2}' | xargs | sed "s/ /, /g")
-                encut=$(grep ENCUT $dir/OUTCAR | awk '{print $1" "$2" "$3" "$4}')
-                echo -e "${id:0:6}  $type $finish $dir"
-                echo -e "        ${GREEN}$pot${RESET}"
-                echo -e "        ${GREEN}$encut${RESET}\n"
+                pot=$(grep TITEL $outcar | awk -F= '{print $2}' | awk '{print $1":"$2}' | xargs | sed "s/ /, /g")
+                encut=$(grep ENCUT $outcar | awk '{print $1" "$2" "$3" "$4}')
+                last_energy=$(grep "energy without" $outcar | tail -1 | awk '{printf "%10.2f eV", $5}')
+                last_energy=${Blue}$last_energy${RESET}
+                last_force=$(grep "FORCES:" $outcar | tail -1 | awk '{printf "%6.2f", $5}')
+                last_force=${Blue}$last_force${RESET}
+                echo -e "${id:0:6}  $type $finish $last_energy $last_force $dir"
+                if [ $POSCAR_exist -gt 0 ]; then
+                    poscar=$dir/POSCAR
+                    atom_symbol=($(sed -n "6p" $poscar))
+                    atom_count=($(sed -n "7p" $poscar))
+                    atom_pot=($(echo $pot | xargs -d, -n1))
+                    echo -e "${id:0:6}  ${GREEN}$pot${RESET}"
+                else
+                    echo -e "${id:0:6}  ${GREEN}$pot${RESET}"
+                fi
+                echo -e "${id:0:6}  ${GREEN}$encut${RESET}\n"
             else
                 type="${Blue}Directory${RESET}"
                 echo -e "${id:0:6}  $type  $dir"
