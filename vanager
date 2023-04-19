@@ -1,5 +1,27 @@
 #!/usr/bin/bash
 
+# Color Constant
+RED="\033[1;31m"
+GREEN="\033[1;32m"
+Yellow="\033[1;33m"
+Blue="\033[1;34m"
+WHITE="\033[1;37m"
+BOLD="\033[1m"
+RESET="\033[0m"
+
+print_help() {
+  echo -e "\n${RED}     Vanager: Scientific Calculation Jobs Manager System${RESET}"
+  echo -e "${GREEN}  ---------------------------------------------------------------${RESET}"
+  echo -e "${GREEN}       Args                  Description${RESET}"
+  echo -e "${GREEN}  ---------------------------------------------------------------${RESET}"
+  echo -e "${Yellow}    init          initialize the directory as the vanager repo${RESET}"
+  echo -e "${Yellow}    tags          list the unique tags${RESET}"
+  echo -e "${Yellow}    search [str]  search dir according to the specified [str]${RESET}"
+  echo -e "${Yellow}    cd [id]       cd dir specified by [id]${RESET}"
+  echo -e "${GREEN}  ****************************************************************${RESET}"
+  
+}
+
 init() {
   local VanConfig=.van
 
@@ -104,19 +126,15 @@ vcd() {
 # ---- Main -----
 WorkDir=$(pwd)
 
-RED="\033[1;31m"
-GREEN="\033[1;32m"
-WHITE="\033[1;37m"
-BOLD="\033[1m"
-RESET="\033[0m"
-
 export VanRoot=$HOME/package/vanager
 source $VanRoot/utils
 export VanDir=$(get_VanDir $WorkDir)
 source $VanRoot/cmd
 
 # Parse Arguments
-if [ x"$1" == x"init" ]; then
+if [ x"$1" == x"-h" ]; then
+  print_help
+elif [ x"$1" == x"init" ]; then
   init
 elif [ x"$1" == x"cmd" ]; then
   record_cmd $@
